@@ -1,0 +1,17 @@
+.env
+.env.*
+
+# go
+backend/tasks.json
+backend/*.exe
+backend/veritas-kanban
+
+# node
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# editor / os
+.vscode/
+.DS_Store
+Thumbs.db
