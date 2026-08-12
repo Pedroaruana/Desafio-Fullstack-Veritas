@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-mono: ui-monospace, Consolas, "SFMono-Regular", monospace;
+
+  --color-paper: #f2ede2;
+  --color-card: #fbf8f1;
+  --color-ink: #201c15;
+  --color-ink-soft: #6b6355;
+  --color-line: #d8cfbc;
+
+  --color-todo: #746b5a;
+  --color-progress: #a8681f;
+  --color-done: #3e6b4a;
+
+  --color-accent: #a3341c;
+  --color-accent-soft: #a3341c1a;
+
+  --shadow-hard: 3px 3px 0 var(--color-ink);
+  --shadow-hard-sm: 2px 2px 0 rgba(32, 28, 21, 0.18);
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  background-color: var(--color-paper);
+  background-image:
+    radial-gradient(rgba(32, 28, 21, 0.05) 1px, transparent 1px),
+    radial-gradient(rgba(32, 28, 21, 0.035) 1px, transparent 1px);
+  background-size: 26px 26px, 17px 17px;
+  background-position: 0 0, 9px 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: var(--color-accent-soft);
+}
