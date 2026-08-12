@@ -12,7 +12,7 @@ interface Props {
   onDragEnd: () => void
   onDragEnter: () => void
   onDragLeave: () => void
-  onDrop: () => void
+  onDrop: (id: string) => void
   onAdd: () => void
   onEdit: (task: Task) => void
   onDelete: (task: Task) => void
@@ -44,7 +44,8 @@ export function Column({
       }}
       onDrop={(e) => {
         e.preventDefault()
-        onDrop()
+        const id = e.dataTransfer.getData('text/plain')
+        if (id) onDrop(id)
       }}
       className="flex flex-col min-w-0 flex-1 border transition-colors"
       style={{

@@ -32,8 +32,8 @@ export function Board({ tasks, onAdd, onEdit, onDelete, onMove }: Props) {
           }}
           onDragEnter={() => setDropTarget(col.status)}
           onDragLeave={() => setDropTarget((cur) => (cur === col.status ? null : cur))}
-          onDrop={() => {
-            const task = tasks.find((t) => t.id === draggingId)
+          onDrop={(id) => {
+            const task = tasks.find((t) => t.id === id)
             if (task && task.status !== col.status) onMove(task, col.status)
             setDraggingId(null)
             setDropTarget(null)
