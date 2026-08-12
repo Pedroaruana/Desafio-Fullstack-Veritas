@@ -48,7 +48,12 @@ func (s *Store) sortedLocked() []Task {
 	for _, t := range s.tasks {
 		list = append(list, t)
 	}
-	sort.Slice(list, func(i, j int) bool { return list[i].CreatedAt.Before(list[j].CreatedAt) })
+	sort.Slice(list, func(i, j int) bool {
+		if list[i].Order != list[j].Order {
+			return list[i].Order < list[j].Order
+		}
+		return list[i].CreatedAt.Before(list[j].CreatedAt)
+	})
 	return list
 }
 
@@ -83,5 +88,35 @@ func (s *Store) Delete(id string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	delete(s.tasks, id)
+	return s.persist()
+}
+
+// CountByStatus retorna quantas tarefas já existem numa coluna, usado pra
+// colocar uma tarefa nova no fim dela.
+func (s *Store) CountByStatus(status Status) int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	count := 0
+	for _, t := range s.tasks {
+		if t.Status == status {
+			count++
+		}
+	}
+	return count
+}
+
+// Reorder recebe os ids de uma coluna na ordem visual desejada e reatribui
+// o campo Order de cada um. Ids que não existem são ignorados.
+func (s *Store) Reorder(ids []string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for i, id := range ids {
+		t, ok := s.tasks[id]
+		if !ok {
+			continue
+		}
+		t.Order = i
+		s.tasks[id] = t
+	}
 	return s.persist()
 }

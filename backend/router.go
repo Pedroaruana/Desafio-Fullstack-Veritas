@@ -9,6 +9,7 @@ func newRouter(a *api) http.Handler {
 	})
 	mux.HandleFunc("GET /tasks", a.listTasks)
 	mux.HandleFunc("POST /tasks", a.createTask)
+	mux.HandleFunc("PUT /tasks/reorder", a.reorderTasks)
 	mux.HandleFunc("PUT /tasks/{id}", a.updateTask)
 	mux.HandleFunc("DELETE /tasks/{id}", a.deleteTask)
 	return mux

@@ -141,3 +141,47 @@ func TestDeleteTask_NotFound(t *testing.T) {
 		t.Fatalf("esperava 404, veio %d", rec.Code)
 	}
 }
+
+func TestCreateTask_OrderSequencial(t *testing.T) {
+	h := newTestRouter(t)
+	rec1 := doRequest(t, h, http.MethodPost, "/tasks", taskInput{Title: "primeira"})
+	rec2 := doRequest(t, h, http.MethodPost, "/tasks", taskInput{Title: "segunda"})
+
+	var t1, t2 Task
+	json.Unmarshal(rec1.Body.Bytes(), &t1)
+	json.Unmarshal(rec2.Body.Bytes(), &t2)
+
+	if t1.Order != 0 || t2.Order != 1 {
+		t.Fatalf("esperava order 0 e 1, veio %d e %d", t1.Order, t2.Order)
+	}
+}
+
+func TestReorderTasks(t *testing.T) {
+	h := newTestRouter(t)
+	rec1 := doRequest(t, h, http.MethodPost, "/tasks", taskInput{Title: "a"})
+	rec2 := doRequest(t, h, http.MethodPost, "/tasks", taskInput{Title: "b"})
+
+	var t1, t2 Task
+	json.Unmarshal(rec1.Body.Bytes(), &t1)
+	json.Unmarshal(rec2.Body.Bytes(), &t2)
+
+	rec := doRequest(t, h, http.MethodPut, "/tasks/reorder", reorderInput{IDs: []string{t2.ID, t1.ID}})
+	if rec.Code != http.StatusOK {
+		t.Fatalf("esperava 200, veio %d: %s", rec.Code, rec.Body.String())
+	}
+
+	var list []Task
+	json.Unmarshal(rec.Body.Bytes(), &list)
+	if len(list) != 2 || list[0].ID != t2.ID || list[1].ID != t1.ID {
+		t.Fatalf("esperava [%s, %s] na nova ordem, veio %+v", t2.ID, t1.ID, list)
+	}
+}
+
+func TestReorderTasks_ListaVazia(t *testing.T) {
+	h := newTestRouter(t)
+	rec := doRequest(t, h, http.MethodPut, "/tasks/reorder", reorderInput{IDs: []string{}})
+
+	if rec.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("esperava 422, veio %d", rec.Code)
+	}
+}

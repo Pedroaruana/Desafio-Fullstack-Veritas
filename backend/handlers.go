@@ -51,6 +51,7 @@ func (a *api) createTask(w http.ResponseWriter, r *http.Request) {
 		Title:       in.Title,
 		Description: strings.TrimSpace(in.Description),
 		Status:      Status(in.Status),
+		Order:       a.store.CountByStatus(Status(in.Status)),
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
@@ -86,6 +87,9 @@ func (a *api) updateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if existing.Status != Status(in.Status) {
+		existing.Order = a.store.CountByStatus(Status(in.Status))
+	}
 	existing.Title = in.Title
 	existing.Description = strings.TrimSpace(in.Description)
 	existing.Status = Status(in.Status)
@@ -96,6 +100,23 @@ func (a *api) updateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, existing)
+}
+
+func (a *api) reorderTasks(w http.ResponseWriter, r *http.Request) {
+	var in reorderInput
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		writeError(w, http.StatusBadRequest, "corpo da requisição inválido")
+		return
+	}
+	if len(in.IDs) == 0 {
+		writeError(w, http.StatusUnprocessableEntity, "lista de ids vazia")
+		return
+	}
+	if err := a.store.Reorder(in.IDs); err != nil {
+		writeError(w, http.StatusInternalServerError, "falha ao reordenar")
+		return
+	}
+	writeJSON(w, http.StatusOK, a.store.List())
 }
 
 func (a *api) deleteTask(w http.ResponseWriter, r *http.Request) {
