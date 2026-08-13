@@ -44,4 +44,6 @@ export const tasksApi = {
   update: (id: string, input: TaskInput) =>
     request<Task>(`/tasks/${id}`, { method: 'PUT', body: JSON.stringify(input) }),
   remove: (id: string) => request<void>(`/tasks/${id}`, { method: 'DELETE' }),
+  reorder: (ids: string[]) =>
+    request<Task[]>('/tasks/reorder', { method: 'PUT', body: JSON.stringify({ ids }) }),
 }

@@ -20,6 +20,7 @@ function App() {
   const [formState, setFormState] = useState<FormState | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Task | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     loadTasks()
@@ -71,6 +72,36 @@ function App() {
     }
   }
 
+  async function handleReorder(draggedId: string, targetStatus: Status, orderedIds: string[]) {
+    const draggedTask = tasks.find((t) => t.id === draggedId)
+    if (!draggedTask) return
+
+    const snapshot = tasks
+    const crossColumn = draggedTask.status !== targetStatus
+
+    setTasks((prev) => {
+      const withStatus = prev.map((t) => (t.id === draggedId ? { ...t, status: targetStatus } : t))
+      return withStatus.map((t) => {
+        const idx = orderedIds.indexOf(t.id)
+        return idx === -1 ? t : { ...t, order: idx }
+      })
+    })
+
+    try {
+      if (crossColumn) {
+        await tasksApi.update(draggedId, {
+          title: draggedTask.title,
+          description: draggedTask.description,
+          status: targetStatus,
+        })
+      }
+      setTasks(await tasksApi.reorder(orderedIds))
+    } catch (err) {
+      setTasks(snapshot)
+      setError(getMessage(err))
+    }
+  }
+
   async function confirmDelete() {
     if (!deleteTarget) return
     setSubmitting(true)
@@ -105,6 +136,16 @@ function App() {
 
       {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
 
+      <div className="mb-4">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="buscar por título..."
+          className="w-full max-w-xs bg-(--color-card) border border-(--color-line) px-3 py-1.5 text-sm outline-none focus:border-(--color-accent)"
+        />
+      </div>
+
       {loading ? (
         <div className="flex flex-col md:flex-row gap-4">
           {[0, 1, 2].map((i) => (
@@ -116,11 +157,16 @@ function App() {
         </div>
       ) : (
         <Board
-          tasks={tasks}
+          tasks={
+            search.trim()
+              ? tasks.filter((t) => t.title.toLowerCase().includes(search.trim().toLowerCase()))
+              : tasks
+          }
           onAdd={(status) => setFormState({ task: null, defaultStatus: status })}
           onEdit={(task) => setFormState({ task, defaultStatus: task.status })}
           onDelete={setDeleteTarget}
           onMove={handleMove}
+          onReorder={handleReorder}
         />
       )}
 

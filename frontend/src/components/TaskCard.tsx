@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Task } from '../types'
 import { STATUS_ACCENT } from '../types'
 import { formatRelative } from '../utils/time'
@@ -8,13 +9,24 @@ interface Props {
   dragging: boolean
   onDragStart: (id: string) => void
   onDragEnd: () => void
+  onDropBefore: (draggedId: string) => void
   onEdit: () => void
   onDelete: () => void
 }
 
 const TILTS = [-0.6, 0.5, -0.3, 0.7, -0.5]
 
-export function TaskCard({ task, index, dragging, onDragStart, onDragEnd, onEdit, onDelete }: Props) {
+export function TaskCard({
+  task,
+  index,
+  dragging,
+  onDragStart,
+  onDragEnd,
+  onDropBefore,
+  onEdit,
+  onDelete,
+}: Props) {
+  const [isDropTarget, setIsDropTarget] = useState(false)
   const tilt = TILTS[index % TILTS.length]
 
   return (
@@ -26,9 +38,29 @@ export function TaskCard({ task, index, dragging, onDragStart, onDragEnd, onEdit
         onDragStart(task.id)
       }}
       onDragEnd={onDragEnd}
+      onDragOver={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+      }}
+      onDragEnter={(e) => {
+        e.stopPropagation()
+        setIsDropTarget(true)
+      }}
+      onDragLeave={(e) => {
+        e.stopPropagation()
+        setIsDropTarget(false)
+      }}
+      onDrop={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setIsDropTarget(false)
+        const id = e.dataTransfer.getData('text/plain')
+        if (id && id !== task.id) onDropBefore(id)
+      }}
       className="group bg-(--color-card) border border-(--color-ink) p-3 cursor-grab active:cursor-grabbing transition-[transform,opacity,box-shadow] hover:-translate-y-0.5"
       style={{
         borderLeft: `4px solid ${STATUS_ACCENT[task.status]}`,
+        borderTop: isDropTarget ? `2px dashed ${STATUS_ACCENT[task.status]}` : undefined,
         opacity: dragging ? 0.35 : 1,
         transform: dragging ? 'none' : `rotate(${tilt}deg)`,
         boxShadow: 'var(--shadow-hard-sm)',

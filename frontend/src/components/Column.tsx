@@ -13,6 +13,7 @@ interface Props {
   onDragEnter: () => void
   onDragLeave: () => void
   onDrop: (id: string) => void
+  onReorderBefore: (draggedId: string, beforeId: string) => void
   onAdd: () => void
   onEdit: (task: Task) => void
   onDelete: (task: Task) => void
@@ -29,6 +30,7 @@ export function Column({
   onDragEnter,
   onDragLeave,
   onDrop,
+  onReorderBefore,
   onAdd,
   onEdit,
   onDelete,
@@ -88,6 +90,7 @@ export function Column({
             dragging={draggingId === task.id}
             onDragStart={onDragStart}
             onDragEnd={onDragEnd}
+            onDropBefore={(draggedId) => onReorderBefore(draggedId, task.id)}
             onEdit={() => onEdit(task)}
             onDelete={() => onDelete(task)}
           />

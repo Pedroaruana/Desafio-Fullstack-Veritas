@@ -5,6 +5,7 @@ export interface Task {
   title: string
   description: string
   status: Status
+  order: number
   createdAt: string
   updatedAt: string
 }
